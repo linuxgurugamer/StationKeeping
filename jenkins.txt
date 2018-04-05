@@ -27,7 +27,7 @@
 1:StationKeeping, StationKeeping.version
 
 # 2:PROJNAME, PROJFILE, VERSIONFILE, PLUGINSFOLDER
-2:StationKeeping,StationKeeping/KerbalHotSeat.csproj,StationKeeping.version,GameData/StationKeeping/Plugins
+2:StationKeeping,StationKeeping/StationKeeping.csproj,StationKeeping.version,GameData/StationKeeping/Plugins
 
 # 3:SOURCEFILE, DESTDIR
 3:StationKeeping.version,GameData/StationKeeping
