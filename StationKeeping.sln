@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2005
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StationKeeping", "StationKeeping\StationKeeping.csproj", "{E55E79B7-7FFF-4EB2-BAE1-E0B80D7E9AC1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{423E642A-9611-4E2A-BC71-32F4BA8C8222}"
+	ProjectSection(SolutionItems) = preProject
+		buildRelease.bat = buildRelease.bat
+		ChangeLog.txt = ChangeLog.txt
+		deploy.bat = deploy.bat
+		jenkins.txt = jenkins.txt
+		License.txt = License.txt
+		README.md = README.md
+		StationKeeping.version = StationKeeping.version
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E55E79B7-7FFF-4EB2-BAE1-E0B80D7E9AC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E55E79B7-7FFF-4EB2-BAE1-E0B80D7E9AC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E55E79B7-7FFF-4EB2-BAE1-E0B80D7E9AC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E55E79B7-7FFF-4EB2-BAE1-E0B80D7E9AC1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7B6FFB82-1091-4348-B349-79DBD611881E}
+	EndGlobalSection
+EndGlobal

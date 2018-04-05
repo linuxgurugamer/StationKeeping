@@ -1,0 +1,4 @@
+0.2.0
+	Adoption by LinuxGuruGamer
+	Added support for ClickThroughBlocker
+	Added support for ToolbarControl
