@@ -2,3 +2,9 @@
 	Adoption by LinuxGuruGamer
 	Added support for ClickThroughBlocker
 	Added support for ToolbarControl
+
+0.2.0.1
+	Deleted extra xml files
+	Deleted unnecessary directory in the top PluginData directory
+	Added Real SMA toggle so no need to edit a config file
+	Added tolorence as a slider so no need to edit a config file

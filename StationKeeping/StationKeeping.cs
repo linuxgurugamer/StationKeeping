@@ -240,30 +240,17 @@ namespace StationKeeping
 
         void OnGUIAppLauncherReady()
         {
-#if false
-            Texture2D Icon = new Texture2D (38, 38);
-			Icon.LoadImage (System.IO.File.ReadAllBytes ("GameData/StationKeeping/StationKeeping_new.png"));
-			GUIButton = ApplicationLauncher.Instance.AddModApplication(
-				OnGUIEnabled,
-				OnGUIDisabled,
-				DummyVoid,
-				DummyVoid,
-				DummyVoid,
-				DummyVoid,
-				ApplicationLauncher.AppScenes.TRACKSTATION,
-				Icon);
-#endif
             toolbarControl = gameObject.AddComponent<ToolbarControl>();
             toolbarControl.AddToAllToolbars(OnGUIEnabled,
                 OnGUIDisabled,
-    ApplicationLauncher.AppScenes.MAPVIEW |
-    ApplicationLauncher.AppScenes.TRACKSTATION,
-    "StationKeeping_NS",
-    "stationKeepingButton",
-    "StationKeeping/PluginData/Textures/StationKeeping_new_38",
-    "StationKeeping/PluginData/Textures/StationKeeping_new_24",
-    "Station Keeping"
-);
+                ApplicationLauncher.AppScenes.MAPVIEW |
+                ApplicationLauncher.AppScenes.TRACKSTATION,
+                "StationKeeping_NS",
+                "stationKeepingButton",
+                "StationKeeping/PluginData/Textures/StationKeeping_new_38",
+                "StationKeeping/PluginData/Textures/StationKeeping_new_24",
+                "Station Keeping"
+            );
             toolbarControl.UseBlizzy(useblizzy);
 
             //Camera c = UIMasterController.Instance.appCanvas.worldCamera;
@@ -340,6 +327,16 @@ namespace StationKeeping
                 Exponent = 6;
             if (GUILayout.Toggle(Exponent == 9, "Gm"))
                 Exponent = 9;
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            RealSMA = GUILayout.Toggle(RealSMA, "Use Real SMA");
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            int percent = (Convert.ToInt32(Math.Round(Tolerance * 100f + 0.5f)));
+            GUILayout.Label("Tolorance (" + percent + "%):");
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            Tolerance = GUILayout.HorizontalSlider((float)Tolerance * 100, 0, 100, GUILayout.Width(WindowRect.width - 20)) / 100f;
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             useblizzy = GUILayout.Toggle(useblizzy, "Use Blizzy Toolbar");
