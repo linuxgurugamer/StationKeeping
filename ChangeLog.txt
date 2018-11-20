@@ -11,3 +11,10 @@
 
 0.2.0.2
 	Version bump for 1.5
+
+0.2.1
+	Added ability to use RCS
+	Added toggle for RCS only
+	Updated toolbar Control so blizzy is now controlled by the ToolbarController
+	Removed all Blizzy options
+	Added current altitude & Set toggle

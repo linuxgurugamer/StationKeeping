@@ -23,8 +23,10 @@ namespace StationKeeping
     {
         Vessel v;
         bool RealSMA;
+        bool RCSOnly;
         double Tolerance;
         double CurrentSMA;
+        double CurrentAltitude;
         double CurrentBodySynchronous;
         string TargetString;
         int Exponent;
@@ -39,6 +41,7 @@ namespace StationKeeping
         {
             v = null;
             CurrentSMA = -1e6;
+            CurrentSMA = 1e6;
             CurrentBodySynchronous = -1e6;
             TargetString = "0";
             Exponent = 6;
@@ -46,6 +49,7 @@ namespace StationKeeping
             //load config instead of hardcoding these
             PluginConfiguration Config = PluginConfiguration.CreateForType<StationKeeping>();
             Config.load();
+            RCSOnly = Config.GetValue<bool>("RCSOnly", false);
             RealSMA = Config.GetValue<bool>("RealSMA", false);
             Tolerance = Config.GetValue<double>("Tolerance", 0.01);
             double WindowX = Config.GetValue<double>("WindowX", 500);
@@ -53,7 +57,7 @@ namespace StationKeeping
 
             WindowRect = new Rect((float)WindowX, (float)WindowY, 200, 125);
 
-            OnGUIAppLauncherReady();
+            InitializeToolbarButton();
             GameEvents.onPlanetariumTargetChanged.Add(OnMapTargetChange);
         }
 
@@ -61,6 +65,7 @@ namespace StationKeeping
         {
             PluginConfiguration Config = PluginConfiguration.CreateForType<StationKeeping>();
             //Debug.Log ("[StationKeeping] Saving " + WindowRect);
+            Config.SetValue("RCSOnly", RCSOnly);
             Config.SetValue("RealSMA", RealSMA);
             Config.SetValue("Tolerance", Tolerance);
             Config.SetValue("WindowX", (double)WindowRect.x);
@@ -80,6 +85,7 @@ namespace StationKeeping
 
             v = mapObject.vessel;
             CurrentSMA = v.orbit.semiMajorAxis;
+            CurrentAltitude = v.orbit.altitude;
             CelestialBody c = mapObject.vessel.mainBody;
             if (c.angularV != 0)
                 CurrentBodySynchronous = Math.Pow(Math.Sqrt(c.gravParameter) / Math.Abs(c.angularV), 2.0 / 3.0);
@@ -141,11 +147,18 @@ namespace StationKeeping
             Vector3d vel = v.orbit.getOrbitalVelocityAtUT(Planetarium.GetUniversalTime());
             double DeltaV = Math.Sqrt(vel.sqrMagnitude + 2 * AdditionalE) - vel.magnitude;
             //double DeltaV = AdditionalE / vel.magnitude; // approximation
-
-            if (!ConsumeFuel(Math.Abs(DeltaV)))
+            if (!RCSConsumeFuel(Math.Abs(DeltaV)))
             {
-                //ScreenMessages.PostScreenMessage ("Cannot set station: " + v.vesselName + " has insufficient fuel.");
-                return;
+                if (!RCSOnly && !ConsumeFuel(Math.Abs(DeltaV)))
+                {
+                    ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has insufficient fuel.");
+                    return;
+                }
+                else
+                {
+                    if (RCSOnly)
+                        return;
+                }
             }
 
             vel *= 1 + DeltaV / vel.magnitude;
@@ -154,7 +167,7 @@ namespace StationKeeping
 
             if (!RealSMA)
                 Target -= v.mainBody.Radius;
-            ScreenMessages.PostScreenMessage("Setting orbit of " + v.vesselName + " to " + FormatLength(Target) + ".");
+            ScreenMessages.PostScreenMessage("Setting orbit of " + v.vesselName + " to " + FormatLength(Target) + ".",5);
 
             OnMapTargetChange(v.mapObject);
         }
@@ -171,6 +184,76 @@ namespace StationKeeping
 			ScreenMessages.PostScreenMessage ("Setting orbit of " + v.vesselName + " to " + FormatLength(Target) + ".");
 
 			OnMapTargetChange (v.mapObject);*/
+        bool RCSConsumeFuel(double DeltaV)
+        {
+            //find best engine
+            ModuleRCS Rcs = null;
+            double isp = -1;
+            foreach (ProtoPartSnapshot pp in v.protoVessel.protoPartSnapshots)
+            {
+                Part part = PartLoader.getPartInfoByName(pp.partName).partPrefab;
+                foreach (ModuleRCS e in part.FindModulesImplementing<ModuleRCS>())
+                {
+                    //Debug.Log ("[StationKeeping] isp: " + e.atmosphereCurve.Evaluate(0));
+                    if (e.atmosphereCurve.Evaluate(0) > isp)
+                    {
+                        Rcs = e;
+                        isp = e.atmosphereCurve.Evaluate(0);
+                    }
+                }
+            }
+
+            if (isp < 0)
+            {
+                if (RCSOnly)
+                    ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has no usable RCS.", 5);
+                return false;
+            }
+
+            //subtract fuel
+            // TODO: use the rocket equation.  (not a big deal for 1% tolerance)
+            double FuelMass = DeltaV / isp / 9.81 * v.GetTotalMass(); // TODO: look up g rather than hardcoding it
+ 
+            System.Collections.Generic.List<Propellant> Fuels = Rcs.propellants;
+            bool InsufficientFuel = false;
+            foreach (Propellant f in Fuels)
+            {
+                double RequiredUnits = 0;
+                //double density = PartResourceLibrary.Instance.GetDefinition (f.name.GetHashCode ()).density;
+                RequiredUnits = FuelMass / Rcs.mixtureDensity;
+                var ReqUnits = RequiredUnits;
+
+                foreach (ProtoPartSnapshot pp in v.protoVessel.protoPartSnapshots)
+                {
+                    foreach (ProtoPartResourceSnapshot r in pp.resources)
+                    {
+                        if (f.name == r.resourceName && r.amount > 0)
+                        {
+                            double Taken = Math.Min(r.amount, RequiredUnits);
+                            RequiredUnits -= Taken;
+                            r.amount -= Taken;
+                        }
+                    }
+                }
+                if (RequiredUnits > 1e-10)
+                {
+                    InsufficientFuel = true;
+                }
+
+                if (!InsufficientFuel)
+                {
+                    ScreenMessages.PostScreenMessage(v.vesselName + " using " + ReqUnits.ToString("F2") + " " + f.name + ".", 5);
+                }
+            }
+            if (InsufficientFuel)
+            {
+                if (RCSOnly)
+                    ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has insufficient fuel.", 5);
+                return false;
+            }
+
+            return true;
+        }
 
         bool ConsumeFuel(double DeltaV)
         {
@@ -200,6 +283,7 @@ namespace StationKeeping
             //subtract fuel
             // TODO: use the rocket equation.  (not a big deal for 1% tolerance)
             double FuelMass = DeltaV / isp / 9.81 * v.GetTotalMass(); // TODO: look up g rather than hardcoding it
+
             System.Collections.Generic.List<Propellant> Fuels = Engine.propellants;
             bool InsufficientFuel = false;
             foreach (Propellant f in Fuels)
@@ -207,14 +291,13 @@ namespace StationKeeping
                 double RequiredUnits = 0;
                 //double density = PartResourceLibrary.Instance.GetDefinition (f.name.GetHashCode ()).density;
                 RequiredUnits = f.ratio * FuelMass / Engine.mixtureDensity;
-
-                ScreenMessages.PostScreenMessage(v.vesselName + " using " + RequiredUnits.ToString("F2") + " " + f.name + ".");
+                var ReqUnits = RequiredUnits;
 
                 foreach (ProtoPartSnapshot pp in v.protoVessel.protoPartSnapshots)
                 {
                     foreach (ProtoPartResourceSnapshot r in pp.resources)
                     {
-                        if (f.name == r.resourceName)
+                        if (f.name == r.resourceName && r.amount > 0)
                         {
                             double Taken = Math.Min(r.amount, RequiredUnits);
                             RequiredUnits -= Taken;
@@ -226,32 +309,36 @@ namespace StationKeeping
                 {
                     InsufficientFuel = true;
                 }
+                if (!InsufficientFuel)
+                    ScreenMessages.PostScreenMessage(v.vesselName + " using " + ReqUnits.ToString("F2") + " " + f.name + ".", 5);
             }
             if (InsufficientFuel)
             {
-                ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has insufficient fuel.");
+                ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has insufficient fuel.", 5);
                 return false;
             }
 
             return true;
         }
 
-        bool useblizzy = false;
 
-        void OnGUIAppLauncherReady()
+        internal const string MODID = "StationKeeping_NS";
+        internal const string MODNAME = "Station Keeping";
+
+        void InitializeToolbarButton()
         {
             toolbarControl = gameObject.AddComponent<ToolbarControl>();
             toolbarControl.AddToAllToolbars(OnGUIEnabled,
                 OnGUIDisabled,
                 ApplicationLauncher.AppScenes.MAPVIEW |
                 ApplicationLauncher.AppScenes.TRACKSTATION,
-                "StationKeeping_NS",
+                MODID,
                 "stationKeepingButton",
                 "StationKeeping/PluginData/Textures/StationKeeping_new_38",
                 "StationKeeping/PluginData/Textures/StationKeeping_new_24",
-                "Station Keeping"
+                MODNAME
             );
-            toolbarControl.UseBlizzy(useblizzy);
+
 
             //Camera c = UIMasterController.Instance.appCanvas.worldCamera;
             //Vector3 screenPos = c.WorldToScreenPoint(GUIButton.transform.position);
@@ -274,10 +361,7 @@ namespace StationKeeping
 
         public void OnGUI()
         {
-            if (toolbarControl != null)
-                toolbarControl.UseBlizzy(useblizzy);
-
-            if (!GUIEnabled || HighLogic.LoadedScene != GameScenes.TRACKSTATION)
+            if (!GUIEnabled || HighLogic.LoadedScene != GameScenes.TRACKSTATION && HighLogic.LoadedScene != GameScenes.FLIGHT)
                 return;
 
             WindowRect = ClickThruBlocker.GUILayoutWindow(GUIid, WindowRect, ToolbarWindow, "StationKeeping");
@@ -291,6 +375,14 @@ namespace StationKeeping
                 GUILayout.Label(FormatLength(CurrentSMA));
             else
                 GUILayout.Label("N/A");
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Alt: ");
+            GUILayout.Label(FormatLength(CurrentAltitude));
+            bool b = GUILayout.Toggle(false, "Set");
+            if (b)
+                TargetString = (CurrentAltitude / Math.Pow(10, Exponent)).ToString("F3");
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -338,9 +430,11 @@ namespace StationKeeping
             GUILayout.BeginHorizontal();
             Tolerance = GUILayout.HorizontalSlider((float)Tolerance * 100, 0, 100, GUILayout.Width(WindowRect.width - 20)) / 100f;
             GUILayout.EndHorizontal();
+
             GUILayout.BeginHorizontal();
-            useblizzy = GUILayout.Toggle(useblizzy, "Use Blizzy Toolbar");
+            RCSOnly = GUILayout.Toggle(RCSOnly, "Use RCS Only");
             GUILayout.EndHorizontal();
+
             GUI.DragWindow();
         }
 
