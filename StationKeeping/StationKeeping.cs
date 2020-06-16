@@ -8,6 +8,7 @@ using ToolbarControl_NS;
 
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Experimental.AI;
 
 namespace StationKeeping
 {
@@ -25,6 +26,7 @@ namespace StationKeeping
         bool RealSMA;
         bool RCSOnly;
         double Tolerance;
+        float fTolerance;
         double CurrentSMA;
         double CurrentAltitude;
         double CurrentBodySynchronous;
@@ -35,7 +37,9 @@ namespace StationKeeping
         ToolbarControl toolbarControl;
         bool GUIEnabled;
         const int GUIid = 153537;
-        Rect WindowRect;
+        const int WIDTH = 200;
+        const int HEIGHT = 125;
+        Rect WindowRect = new Rect(500,500, WIDTH, HEIGHT);
 
         public void Start()
         {
@@ -49,9 +53,11 @@ namespace StationKeeping
             //load config instead of hardcoding these
             PluginConfiguration Config = PluginConfiguration.CreateForType<StationKeeping>();
             Config.load();
+            AltSkin = Config.GetValue("AltSkin", false);
             RCSOnly = Config.GetValue<bool>("RCSOnly", false);
             RealSMA = Config.GetValue<bool>("RealSMA", false);
             Tolerance = Config.GetValue<double>("Tolerance", 0.01);
+            fTolerance = (Convert.ToInt32(Math.Round(Tolerance * 100f + 0.5f)));
             double WindowX = Config.GetValue<double>("WindowX", 500);
             double WindowY = Config.GetValue<double>("WindowY", 500);
 
@@ -65,6 +71,7 @@ namespace StationKeeping
         {
             PluginConfiguration Config = PluginConfiguration.CreateForType<StationKeeping>();
             //Debug.Log ("[StationKeeping] Saving " + WindowRect);
+            Config.SetValue("AltSkin", AltSkin);
             Config.SetValue("RCSOnly", RCSOnly);
             Config.SetValue("RealSMA", RealSMA);
             Config.SetValue("Tolerance", Tolerance);
@@ -359,17 +366,26 @@ namespace StationKeeping
         {
         }
 
+        bool oldAltSkin = false;
         public void OnGUI()
         {
             if (!GUIEnabled || HighLogic.LoadedScene != GameScenes.TRACKSTATION && HighLogic.LoadedScene != GameScenes.FLIGHT)
                 return;
-
+            if (!AltSkin)
+                GUI.skin = HighLogic.Skin;
             WindowRect = ClickThruBlocker.GUILayoutWindow(GUIid, WindowRect, ToolbarWindow, "StationKeeping");
+            if (oldAltSkin != AltSkin)
+            {
+                WindowRect.height = HEIGHT;
+                WindowRect.width = WIDTH;
+
+                oldAltSkin = AltSkin;
+            }
         }
 
         void ToolbarWindow(int id)
         {
-            GUILayout.BeginHorizontal();
+            GUILayout.BeginHorizontal(GUILayout.Width(WIDTH));
             GUILayout.Label("SMA: ");
             if (CurrentSMA > -1e5)
                 GUILayout.Label(FormatLength(CurrentSMA));
@@ -401,7 +417,7 @@ namespace StationKeeping
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            TargetString = GUILayout.TextField(TargetString);
+            TargetString = GUILayout.TextField(TargetString, GUILayout.Width(WIDTH - 20));
             ParseTargetString();
             if (!CheckSMA(CurrentSMA, TargetSMA))
                 GUI.enabled = false;
@@ -415,29 +431,36 @@ namespace StationKeeping
             GUILayout.BeginHorizontal();
             if (GUILayout.Toggle(Exponent == 3, "km"))
                 Exponent = 3;
+            
+            GUILayout.FlexibleSpace();
             if (GUILayout.Toggle(Exponent == 6, "Mm"))
                 Exponent = 6;
+            GUILayout.FlexibleSpace();
             if (GUILayout.Toggle(Exponent == 9, "Gm"))
                 Exponent = 9;
+            GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             RealSMA = GUILayout.Toggle(RealSMA, "Use Real SMA");
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            int percent = (Convert.ToInt32(Math.Round(Tolerance * 100f + 0.5f)));
-            GUILayout.Label("Tolorance (" + percent + "%):");
+           // int percent = fTolerance; // (Convert.ToInt32(Math.Round(Tolerance * 100f + 0.5f)));
+            GUILayout.Label("Tolorance (" + ((int)fTolerance) + "%):");
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            Tolerance = GUILayout.HorizontalSlider((float)Tolerance * 100, 0, 100, GUILayout.Width(WindowRect.width - 20)) / 100f;
-            GUILayout.EndHorizontal();
+            fTolerance = GUILayout.HorizontalSlider((float)fTolerance, 0, 100, GUILayout.Width(WIDTH - 20)) ;
+            Tolerance = fTolerance / 100f;
 
+            GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             RCSOnly = GUILayout.Toggle(RCSOnly, "Use RCS Only");
             GUILayout.EndHorizontal();
-
+            GUILayout.BeginHorizontal();
+            AltSkin = GUILayout.Toggle(AltSkin, "Alternate Skin");
+            GUILayout.EndHorizontal();
             GUI.DragWindow();
         }
-
+        bool AltSkin = false;
         static string FormatLength(double x)
         {
             int level = 0;
