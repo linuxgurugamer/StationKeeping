@@ -21,12 +21,16 @@ ChangeLog
 	Removed all Blizzy options
 	Added current altitude & Set toggle
 
-2.2.0
+0.2.2.0
 	Added InstallChecker
 	Updated AssemblyVersion.tt
 	Updated for KSP 1.8
 
-2.2.1
+0.2.2.1
 	Added stock skin for higher res monitors
 	Fixed entry fields not having a width specified
 	Reduce overhead from multiple multiplications and divisions by adding a new variable: fTolerance
+
+0.2.2.2
+	Added AssemblyFileVersion
+	Updated version file for 1.12
