@@ -81,6 +81,8 @@ namespace StationKeeping
             //Debug.Log ("Saved WindowY: " + Config ["WindowY"]);
             Config.save();
 
+            GameEvents.onPlanetariumTargetChanged.Remove(OnMapTargetChange);
+
             toolbarControl.OnDestroy();
             Destroy(toolbarControl);
         }
