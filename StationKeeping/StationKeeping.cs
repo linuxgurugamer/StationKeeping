@@ -25,6 +25,7 @@ namespace StationKeeping
         Vessel v;
         bool RealSMA;
         bool RCSOnly;
+        bool IgnoreElectricCharge;
         double Tolerance;
         float fTolerance;
         double CurrentSMA;
@@ -55,6 +56,7 @@ namespace StationKeeping
             Config.load();
             AltSkin = Config.GetValue("AltSkin", false);
             RCSOnly = Config.GetValue<bool>("RCSOnly", false);
+            IgnoreElectricCharge = Config.GetValue<bool>("IgnoreElectricCharge", false);
             RealSMA = Config.GetValue<bool>("RealSMA", false);
             Tolerance = Config.GetValue<double>("Tolerance", 0.01);
             fTolerance = (Convert.ToInt32(Math.Round(Tolerance * 100f + 0.5f)));
@@ -73,6 +75,7 @@ namespace StationKeeping
             //Debug.Log ("[StationKeeping] Saving " + WindowRect);
             Config.SetValue("AltSkin", AltSkin);
             Config.SetValue("RCSOnly", RCSOnly);
+            Config.SetValue("IgnoreElectricCharge", IgnoreElectricCharge);
             Config.SetValue("RealSMA", RealSMA);
             Config.SetValue("Tolerance", Tolerance);
             Config.SetValue("WindowX", (double)WindowRect.x);
@@ -297,6 +300,11 @@ namespace StationKeeping
             bool InsufficientFuel = false;
             foreach (Propellant f in Fuels)
             {
+                if (IgnoreElectricCharge && f.name == "ElectricCharge")
+                {
+                    continue;
+                }
+
                 double RequiredUnits = 0;
                 //double density = PartResourceLibrary.Instance.GetDefinition (f.name.GetHashCode ()).density;
                 RequiredUnits = f.ratio * FuelMass / Engine.mixtureDensity;
@@ -456,6 +464,9 @@ namespace StationKeeping
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             RCSOnly = GUILayout.Toggle(RCSOnly, "Use RCS Only");
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            IgnoreElectricCharge = GUILayout.Toggle(IgnoreElectricCharge, "Ignore Electric Charge");
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             AltSkin = GUILayout.Toggle(AltSkin, "Alternate Skin");
