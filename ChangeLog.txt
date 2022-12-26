@@ -37,3 +37,7 @@ ChangeLog
 
 0.2.2.3
 	Fixed small memory leak by not removing a callback from a game event
+
+0.2.3
+	Thanks to github user @cabadam for this small update:
+		Added configurable setting to allow ignoring electric charge as a fuel source
