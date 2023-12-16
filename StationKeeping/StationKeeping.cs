@@ -376,7 +376,7 @@ namespace StationKeeping
         {
         }
 
-        bool oldAltSkin = false;
+        bool oldAltSkin, oldRealSMA;
         public void OnGUI()
         {
             if (!GUIEnabled || HighLogic.LoadedScene != GameScenes.TRACKSTATION && HighLogic.LoadedScene != GameScenes.FLIGHT)
@@ -390,6 +390,10 @@ namespace StationKeeping
                 WindowRect.width = WIDTH;
 
                 oldAltSkin = AltSkin;
+            }
+            if (oldRealSMA != RealSMA) { // Recalculate CurrentSMA value to prevent kerbals from dying horribly
+                OnMapTargetChange(v.mapObject);
+                oldRealSMA = RealSMA;
             }
         }
 
