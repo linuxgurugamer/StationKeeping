@@ -41,3 +41,8 @@ ChangeLog
 0.2.3
 	Thanks to github user @cabadam for this small update:
 		Added configurable setting to allow ignoring electric charge as a fuel source
+
+0.2.3.1
+	Thanks to github user @x13x54 for this:	
+		Recalculate SMA on toggle RealSMA by calling OnMapTargetChange(v.mapObject);
+		
