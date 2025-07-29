@@ -459,7 +459,7 @@ namespace StationKeeping
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
            // int percent = fTolerance; // (Convert.ToInt32(Math.Round(Tolerance * 100f + 0.5f)));
-            GUILayout.Label("Tolorance (" + ((int)fTolerance) + "%):");
+            GUILayout.Label("Tolerance (" + ((int)fTolerance) + "%):");
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             fTolerance = GUILayout.HorizontalSlider((float)fTolerance, 0, 100, GUILayout.Width(WIDTH - 20)) ;
