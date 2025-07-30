@@ -1,4 +1,5 @@
-﻿using System;
+using KSP.Localization;
+using System;
 using UnityEngine;
 using KSP.UI.Screens;
 using KSP.IO;
@@ -146,7 +147,7 @@ namespace StationKeeping
 
             if (v.situation != Vessel.Situations.ORBITING)
             {
-                ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " not in orbit.");
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_StationKeeping_Cannot_set_station") + v.vesselName + Localizer.Format("#LOC_StationKeeping_not_in_orbit"));
                 return;
             }
 
@@ -163,7 +164,7 @@ namespace StationKeeping
             {
                 if (!RCSOnly && !ConsumeFuel(Math.Abs(DeltaV)))
                 {
-                    ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has insufficient fuel.");
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_StationKeeping_Cannot_set_station")+" "+ v.vesselName + Localizer.Format("#LOC_StationKeeping_has_insufficient_fuel"));
                     return;
                 }
                 else
@@ -179,7 +180,7 @@ namespace StationKeeping
 
             if (!RealSMA)
                 Target -= v.mainBody.Radius;
-            ScreenMessages.PostScreenMessage("Setting orbit of " + v.vesselName + " to " + FormatLength(Target) + ".",5);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_StationKeeping_Setting_orbit_of") +" "+ v.vesselName + Localizer.Format("#LOC_StationKeeping_to") +" "+ FormatLength(Target) + ".",5);
 
             OnMapTargetChange(v.mapObject);
         }
@@ -218,7 +219,7 @@ namespace StationKeeping
             if (isp < 0)
             {
                 if (RCSOnly)
-                    ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has no usable RCS.", 5);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_StationKeeping_Cannot_set_station") +" "+ v.vesselName + Localizer.Format("#LOC_StationKeeping_has_no_usable_RCS"), 5);
                 return false;
             }
 
@@ -254,13 +255,13 @@ namespace StationKeeping
 
                 if (!InsufficientFuel)
                 {
-                    ScreenMessages.PostScreenMessage(v.vesselName + " using " + ReqUnits.ToString("F2") + " " + f.name + ".", 5);
+                    ScreenMessages.PostScreenMessage(v.vesselName + Localizer.Format("#LOC_StationKeeping_using") + " " + ReqUnits.ToString("F2") + " " + f.name + ".", 5);
                 }
             }
             if (InsufficientFuel)
             {
                 if (RCSOnly)
-                    ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has insufficient fuel.", 5);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_StationKeeping_Cannot_set_station") + " " + v.vesselName + " " + Localizer.Format("#LOC_StationKeeping_has_insufficient_fuel"), 5);
                 return false;
             }
 
@@ -288,7 +289,7 @@ namespace StationKeeping
 
             if (isp < 0)
             {
-                ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has no usable engines.");
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_StationKeeping_Cannot_set_station") + " " + v.vesselName + Localizer.Format("#LOC_StationKeeping_has_no_usable_engines"));
                 return false;
             }
 
@@ -327,11 +328,11 @@ namespace StationKeeping
                     InsufficientFuel = true;
                 }
                 if (!InsufficientFuel)
-                    ScreenMessages.PostScreenMessage(v.vesselName + " using " + ReqUnits.ToString("F2") + " " + f.name + ".", 5);
+                    ScreenMessages.PostScreenMessage(v.vesselName + Localizer.Format("#LOC_StationKeeping_using") + " " + ReqUnits.ToString("F2") + " " + f.name + ".", 5);
             }
             if (InsufficientFuel)
             {
-                ScreenMessages.PostScreenMessage("Cannot set station: " + v.vesselName + " has insufficient fuel.", 5);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_StationKeeping_Cannot_set_station") + " " + v.vesselName + Localizer.Format("#LOC_StationKeeping_has_insufficient_fuel"), 5);
                 return false;
             }
 
@@ -383,7 +384,7 @@ namespace StationKeeping
                 return;
             if (!AltSkin)
                 GUI.skin = HighLogic.Skin;
-            WindowRect = ClickThruBlocker.GUILayoutWindow(GUIid, WindowRect, ToolbarWindow, "StationKeeping");
+            WindowRect = ClickThruBlocker.GUILayoutWindow(GUIid, WindowRect, ToolbarWindow, Localizer.Format("#LOC_StationKeeping_StationKeeping"));
             if (oldAltSkin != AltSkin)
             {
                 WindowRect.height = HEIGHT;
@@ -400,30 +401,30 @@ namespace StationKeeping
         void ToolbarWindow(int id)
         {
             GUILayout.BeginHorizontal(GUILayout.Width(WIDTH));
-            GUILayout.Label("SMA: ");
+            GUILayout.Label(Localizer.Format("#LOC_StationKeeping_SMA"));
             if (CurrentSMA > -1e5)
                 GUILayout.Label(FormatLength(CurrentSMA));
             else
-                GUILayout.Label("N/A");
+                GUILayout.Label(Localizer.Format("#LOC_StationKeeping_N_A"));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Alt: ");
+            GUILayout.Label(Localizer.Format("#LOC_StationKeeping_Alt"));
             GUILayout.Label(FormatLength(CurrentAltitude));
-            bool b = GUILayout.Toggle(false, "Set");
+            bool b = GUILayout.Toggle(false, Localizer.Format("#LOC_StationKeeping_Set"));
             if (b)
                 TargetString = (CurrentAltitude / Math.Pow(10, Exponent)).ToString("F3");
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Sync: ");
+            GUILayout.Label(Localizer.Format("#LOC_StationKeeping_Sync"));
             if (CurrentBodySynchronous > 0)
                 GUILayout.Label(FormatLength(CurrentBodySynchronous));
             else
-                GUILayout.Label("N/A");
+                GUILayout.Label(Localizer.Format("#LOC_StationKeeping_N_A"));
             if (CurrentBodySynchronous < 0 || !CheckSMA(CurrentSMA, CurrentBodySynchronous))
                 GUI.enabled = false;
-            if (GUILayout.Button("Set Sync", GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(Localizer.Format("#LOC_StationKeeping_Set_Sync"), GUILayout.ExpandWidth(false)))
             {
                 SetSMA(CurrentBodySynchronous);
             }
@@ -435,7 +436,7 @@ namespace StationKeeping
             ParseTargetString();
             if (!CheckSMA(CurrentSMA, TargetSMA))
                 GUI.enabled = false;
-            if (GUILayout.Button("Set SMA", GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(Localizer.Format("#LOC_StationKeeping_Set_SMA"), GUILayout.ExpandWidth(false)))
             {
                 SetSMA(TargetSMA);
             }
@@ -443,23 +444,23 @@ namespace StationKeeping
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Toggle(Exponent == 3, "km"))
+            if (GUILayout.Toggle(Exponent == 3, Localizer.Format("#LOC_StationKeeping_km")))
                 Exponent = 3;
             
             GUILayout.FlexibleSpace();
-            if (GUILayout.Toggle(Exponent == 6, "Mm"))
+            if (GUILayout.Toggle(Exponent == 6, Localizer.Format("#LOC_StationKeeping_Mm")))
                 Exponent = 6;
             GUILayout.FlexibleSpace();
-            if (GUILayout.Toggle(Exponent == 9, "Gm"))
+            if (GUILayout.Toggle(Exponent == 9, Localizer.Format("#LOC_StationKeeping_Gm")))
                 Exponent = 9;
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            RealSMA = GUILayout.Toggle(RealSMA, "Use Real SMA");
+            RealSMA = GUILayout.Toggle(RealSMA, Localizer.Format("#LOC_StationKeeping_Use_Real_SMA"));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
            // int percent = fTolerance; // (Convert.ToInt32(Math.Round(Tolerance * 100f + 0.5f)));
-            GUILayout.Label("Tolerance (" + ((int)fTolerance) + "%):");
+            GUILayout.Label(Localizer.Format("#LOC_StationKeeping_Tolerance") + ((int)fTolerance) + "%):");
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             fTolerance = GUILayout.HorizontalSlider((float)fTolerance, 0, 100, GUILayout.Width(WIDTH - 20)) ;
@@ -467,13 +468,13 @@ namespace StationKeeping
 
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            RCSOnly = GUILayout.Toggle(RCSOnly, "Use RCS Only");
+            RCSOnly = GUILayout.Toggle(RCSOnly, Localizer.Format("#LOC_StationKeeping_Use_RCS_Only"));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            IgnoreElectricCharge = GUILayout.Toggle(IgnoreElectricCharge, "Ignore Electric Charge");
+            IgnoreElectricCharge = GUILayout.Toggle(IgnoreElectricCharge, Localizer.Format("#LOC_StationKeeping_Ignore_Electric_Charge"));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            AltSkin = GUILayout.Toggle(AltSkin, "Alternate Skin");
+            AltSkin = GUILayout.Toggle(AltSkin, Localizer.Format("#LOC_StationKeeping_Alternate_Skin"));
             GUILayout.EndHorizontal();
             GUI.DragWindow();
         }
@@ -488,15 +489,15 @@ namespace StationKeeping
             }
             string formatted = x.ToString("G4");
             if (level == 0)
-                formatted += " m";
+                formatted += Localizer.Format("#LOC_StationKeeping_m");
             else if (level == 1)
-                formatted += " km";
+                formatted += Localizer.Format("#LOC_StationKeeping_km_DUP1");
             else if (level == 2)
-                formatted += " Mm";
+                formatted += Localizer.Format("#LOC_StationKeeping_Mm_DUP1");
             else if (level == 3)
-                formatted += " Gm";
+                formatted += Localizer.Format("#LOC_StationKeeping_Gm_DUP1");
             else
-                formatted += " Tm";
+                formatted += Localizer.Format("#LOC_StationKeeping_Tm");
             return formatted;
         }
     }

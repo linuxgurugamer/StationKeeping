@@ -46,3 +46,8 @@ ChangeLog
 	Thanks to github user @x13x54 for this:	
 		Recalculate SMA on toggle RealSMA by calling OnMapTargetChange(v.mapObject);
 		
+0.2.3.2
+	Thanks to github user @Moonlington for this:
+		Fixed a typo: FIX: tolorance -> tolerance
+	Updated version file to use github for new version info
+	Localized the mod
